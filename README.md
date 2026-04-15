@@ -6,7 +6,7 @@
 ![React](https://img.shields.io/badge/React-18-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
-**Kora** es una aplicación de conexión y dating exclusiva para estudiantes de la Institución Educativa Técnica Pascual Bravo. Permite a los estudiantes descubrir perfiles compatibles, crear matches, chatear en tiempo real y compartir intereses comunes.
+**Kora** es una aplicación de conexión y dating exclusiva para estudiantes de la Universidad Pascual Bravo. Permite a los estudiantes descubrir perfiles compatibles, crear matches, chatear en tiempo real y compartir intereses comunes.
 
 ## 🌟 Características Principales
 
