@@ -1,0 +1,218 @@
+// Schema de Base de Datos para Kora App
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum RelationshipGoal {
+  FRIENDSHIP
+  DATING
+  SERIOUS_RELATIONSHIP
+  JUST_MEETING_PEOPLE
+  STUDY_GROUPS
+}
+
+enum ReportReason {
+  INAPPROPRIATE_CONTENT
+  HARASSMENT
+  SPAM
+  IMPERSONATION
+  UNDERAGE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String    @map("password_hash")
+  dateOfBirth       DateTime  @map("date_of_birth")
+  verified          Boolean   @default(false)
+  verificationToken String?   @map("verification_token")
+  resetToken        String?   @map("reset_token")
+  resetTokenExpiry  DateTime? @map("reset_token_expiry")
+  
+  isActive          Boolean   @default(true)
+  isBanned          Boolean   @default(false)
+  banReason         String?   @map("ban_reason")
+  
+  loginAttempts     Int       @default(0) @map("login_attempts")
+  lockUntil         DateTime? @map("lock_until")
+  lastLogin         DateTime? @map("last_login")
+  
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  // Relaciones
+  profile           Profile?
+  likesGiven        Like[]    @relation("LikesGiven")
+  likesReceived     Like[]    @relation("LikesReceived")
+  matchesAsUser1    Match[]   @relation("MatchUser1")
+  matchesAsUser2    Match[]   @relation("MatchUser2")
+  messages          Message[]
+  reportsGiven      Report[]  @relation("ReportsGiven")
+  reportsReceived   Report[]  @relation("ReportsReceived")
+  location          Location?
+  
+  @@map("users")
+}
+
+model Profile {
+  id              String           @id @default(uuid())
+  userId          String           @unique @map("user_id")
+  name            String
+  bio             String?
+  gender          Gender
+  program         String
+  semester        Int?
+  photos          String[]         // URLs de las fotos
+  interests       String[]
+  hobbies         String[]
+  relationshipGoal RelationshipGoal @map("relationship_goal")
+  
+  // Preferencias
+  minAge          Int              @default(18) @map("min_age")
+  maxAge          Int              @default(30) @map("max_age")
+  maxDistance     Int?             @map("max_distance") // en kilómetros
+  showMeTo        String           @default("ALL") @map("show_me_to") // ALL, SAME_GENDER, CUSTOM
+  
+  // Privacidad
+  showLastSeen    Boolean          @default(true) @map("show_last_seen")
+  showDistance    Boolean          @default(true) @map("show_distance")
+  incognitoMode   Boolean          @default(false) @map("incognito_mode")
+  incognitoUntil  DateTime?        @map("incognito_until")
+  
+  completeness    Int              @default(0) // Porcentaje de completitud del perfil
+  
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  
+  // Relación
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("profiles")
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  latitude    Float
+  longitude   Float
+  accuracy    Float?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relación
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("locations")
+}
+
+model Like {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  targetUserId String  @map("target_user_id")
+  isSuperLike Boolean  @default(false) @map("is_super_like")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relaciones
+  user        User     @relation("LikesGiven", fields: [userId], references: [id], onDelete: Cascade)
+  targetUser  User     @relation("LikesReceived", fields: [targetUserId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, targetUserId])
+  @@index([userId])
+  @@index([targetUserId])
+  @@map("likes")
+}
+
+model Match {
+  id          String    @id @default(uuid())
+  user1Id     String    @map("user1_id")
+  user2Id     String    @map("user2_id")
+  matchedAt   DateTime  @default(now()) @map("matched_at")
+  isActive    Boolean   @default(true) @map("is_active")
+  unmatchedAt DateTime? @map("unmatched_at")
+  unmatchedBy String?   @map("unmatched_by")
+  
+  // Relaciones
+  user1       User      @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2       User      @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages    Message[]
+  
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@map("matches")
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  matchId     String    @map("match_id")
+  senderId    String    @map("sender_id")
+  content     String
+  images      String[]  // URLs de imágenes adjuntas
+  attachmentNames String[] @default([]) @map("attachment_names")
+  attachmentTypes String[] @default([]) @map("attachment_types")
+  isRead      Boolean   @default(false) @map("is_read")
+  readAt      DateTime? @map("read_at")
+  deletedAt   DateTime? @map("deleted_at")
+  sentAt      DateTime  @default(now()) @map("sent_at")
+  
+  // Relaciones
+  match       Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  @@index([matchId])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model Report {
+  id              String       @id @default(uuid())
+  reporterId      String       @map("reporter_id")
+  reportedUserId  String       @map("reported_user_id")
+  reason          ReportReason
+  description     String?
+  status          ReportStatus @default(PENDING)
+  reviewedBy      String?      @map("reviewed_by")
+  reviewedAt      DateTime?    @map("reviewed_at")
+  resolution      String?
+  createdAt       DateTime     @default(now()) @map("created_at")
+  
+  // Relaciones
+  reporter        User         @relation("ReportsGiven", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser    User         @relation("ReportsReceived", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@map("reports")
+}
+
+model Swipe {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  targetUserId String  @map("target_user_id")
+  isLike      Boolean  @map("is_like")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@unique([userId, targetUserId])
+  @@index([userId])
+  @@map("swipes")
+}
