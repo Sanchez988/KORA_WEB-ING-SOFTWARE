@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    @apply text-ink dark:bg-gray-900 dark:text-gray-100;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    background-color: #f6f7fb;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(255, 79, 122, 0.18) 0%, rgba(255, 79, 122, 0) 44%),
+      radial-gradient(circle at 85% 12%, rgba(31, 139, 255, 0.16) 0%, rgba(31, 139, 255, 0) 42%),
+      linear-gradient(180deg, #fdfeff 0%, #f6f7fb 100%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: rgba(255, 79, 122, 0.24);
+    color: #1a1d29;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-primary text-white shadow-glow hover:brightness-105;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark hover:shadow-md;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary/80 text-primary hover:bg-primary hover:text-white;
+  }
+  
+  .card {
+    @apply bg-white/85 dark:bg-gray-800/85 rounded-card shadow-md p-6 backdrop-blur;
+  }
+  
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-gray-600 
+           focus:ring-2 focus:ring-primary/30 focus:border-primary 
+           dark:bg-gray-700/95 dark:text-white transition-all;
+  }
+  
+  .swipe-card {
+    @apply absolute top-0 left-0 w-full h-full rounded-card overflow-hidden 
+           shadow-xl cursor-grab active:cursor-grabbing;
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+
+  .surface-glass {
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border border-white/50 dark:border-gray-700/60;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
